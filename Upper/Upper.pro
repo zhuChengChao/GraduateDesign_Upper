@@ -5,8 +5,9 @@
 #-------------------------------------------------
 
 QT       += core gui
+QT       += serialport
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
 TARGET = Upper
 TEMPLATE = app
@@ -24,8 +25,20 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        mainwindow.cpp \
+    serial.cpp \
+    params.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += mainwindow.h \
+    params.h
 
 FORMS    += mainwindow.ui
+
+INCLUDEPATH += C:\03ProgrammingSoftware\OpenCV\opencv\build\include
+               C:\03ProgrammingSoftware\OpenCV\opencv\build\include\opencv
+               C:\03ProgrammingSoftware\OpenCV\opencv\build\include\opencv2
+
+LIBS += C:\03ProgrammingSoftware\QtWithOpenCV\lib\libopencv_*.a
+
+RESOURCES += \
+    image.qrc
