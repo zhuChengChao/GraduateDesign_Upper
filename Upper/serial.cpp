@@ -74,7 +74,21 @@ void MainWindow::ReceiveData()
 //数据发送
 void MainWindow::SendData()
 {
+    ushort sum = 0;
     //memset(TxBuff, 10, 8);
+    TxBuff[0] = 0xa0;
+    TxBuff[1] = DirAngle;
+    TxBuff[2] = Angle;
+    TxBuff[3] = Distance & 0x00ff;
+    TxBuff[4] = Distance / 256;
+    TxBuff[5] = 0x00;
+
+    for(uint i=1;i<6;i++)
+        sum += TxBuff[i];
+    TxBuff[6] = sum & 0x00ff;
+    TxBuff[7] = 0x0a;
+
+
     if(serial.isOpen())
         serial.write((const char*)TxBuff,8);
 }

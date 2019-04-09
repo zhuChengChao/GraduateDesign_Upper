@@ -9,12 +9,22 @@
 #include <QDebug>
 #include <QString>
 #include <QTimer>
+#include <opencv2/opencv.hpp>
 
 #define CAPTURE_WIDTH 480
 #define CAPTURE_HEIGHT 360
 
-//0：帧头0xa0  1：控制对象 0x11车  0x22摄像头  0x33机械臂  2：控制方式  3-5:保留  6：sum  7：帧尾0x0a
+//0：帧头0xa0  1：角度方向  2：角度大小    3:距离低8位
+//4:距离高8位   5:保留位   6：sum校验位   7：帧尾0x0a
 extern uchar TxBuff[8];
+
+//定义Counter类
+class Contour
+{
+public:
+    float m_Area;
+    cv::Point2f m_Center;
+};
 
 
 #endif // PARAMS_H
