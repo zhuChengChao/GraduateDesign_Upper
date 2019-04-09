@@ -27,7 +27,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += main.cpp\
         mainwindow.cpp \
     serial.cpp \
-    params.cpp
+    params.cpp \
+    imageprocess.cpp
 
 HEADERS  += mainwindow.h \
     params.h
