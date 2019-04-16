@@ -255,7 +255,6 @@ void MainWindow::ShowImage()
 //    cv::circle(showImage, PtCarFront, 4, cv::Scalar(255, 0, 0));
 //    cv::circle(showImage, PtCarTail, 8, cv::Scalar(0, 255, 0));
     cvtColor(showImage,showImage,CV_BGR2RGB);
-
     image = QImage((uchar*)showImage.data,showImage.cols,showImage.rows,
                    showImage.cols*showImage.channels(),QImage::Format_RGB888);
     ui->label_original->setPixmap(QPixmap::fromImage(image));

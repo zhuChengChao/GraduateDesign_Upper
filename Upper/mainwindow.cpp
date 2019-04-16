@@ -12,6 +12,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    Capture.release();
     delete ui;
 }
 
@@ -23,7 +24,7 @@ void MainWindow::AllIint()
     //参数初始化
     BlurSize = 3;
     ui->spinBox_BlurSize->setValue(BlurSize);
-    Thresh = 10;
+    Thresh = 5;
     ui->spinBox_ThresValue->setValue(Thresh);
     MinBlobArea = 5;
     ui->spinBox_MinBlibSize->setValue(MinBlobArea);
