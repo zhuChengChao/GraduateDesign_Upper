@@ -6,9 +6,31 @@
 using namespace cv;
 
 
-//打开摄像头
+//打开摄像头 | 打开视频流
 void MainWindow::on_pushButton_OpenCam_clicked()
 {
+    if(ui->comboBox_channel->currentText() == "video")
+        g_isMovie = true;
+
+    if(g_isMovie)
+    {
+        //打开视频流
+        Capture.set(CV_CAP_PROP_FRAME_WIDTH, CAPTURE_WIDTH);
+        Capture.set(CV_CAP_PROP_FRAME_HEIGHT, CAPTURE_HEIGHT);
+
+        Capture.open("C:/Users/Zhucc/Desktop/testvideo.avi");
+        if (!Capture.isOpened())
+            qDebug()<<"open failed";
+
+
+        ui->pushButton_OpenCam->setText(tr("打开视频流"));
+        ui->pushButton_OpenCam->setEnabled(false);
+        ui->comboBox_channel->setDisabled(true);
+        timer->start(30);
+        return;
+    }
+
+    g_isMovie = false;
     if (!Capture.isOpened())
     {
         Capture.open(ui->comboBox_channel->currentText().toInt());
@@ -20,9 +42,9 @@ void MainWindow::on_pushButton_OpenCam_clicked()
         {
             //每次打开相机都初始化一次参数
             //InitRemap();
-            timer->start(30);
             ui->pushButton_OpenCam->setText(tr("关闭相机"));
             ui->comboBox_channel->setDisabled(true);
+            timer->start(30);
         }
     }
     else
@@ -32,6 +54,7 @@ void MainWindow::on_pushButton_OpenCam_clicked()
         ui->pushButton_OpenCam->setText(tr("打开相机"));
         ui->comboBox_channel->setEnabled(true);
     }
+
 }
 
 
@@ -40,19 +63,36 @@ void MainWindow::GetFrame()
 {
     timer->stop();
 
-    Capture>>ImageOriginal; //获取原图
+    if(g_isMovie == false)
+        Capture>>ImageOriginal; //获取原图
+    else
+    {
+        //获取视频流
+        bool read_flag = Capture.read(ImageOriginal);
+        qDebug()<<read_flag;
+
+        if(read_flag == false)
+        {
+            Capture.release();
+            ui->pushButton_OpenCam->setEnabled(true);
+            ui->comboBox_channel->setDisabled(false);
+            return;
+        }
+    }
+
 
     //修正
     //...
 
     cvtColor(ImageOriginal, ImageGray, CV_BGR2GRAY);
     blur(ImageGray, ImageGray, Size(BlurSize,BlurSize));
-    //threshold(ImageGray, ImageBinary, Thresh, 255, THRESH_BINARY);
+    threshold(ImageGray, ImageBinary, Thresh, 255, THRESH_BINARY);
     //临时测试
-    threshold(ImageGray, ImageBinary, 0, 255, THRESH_BINARY | THRESH_OTSU);
+    //threshold(ImageGray, ImageBinary, 0, 255, THRESH_BINARY | THRESH_OTSU);
+
+    AnalysisImage();
 
     ShowImage();
-
     timer->start();
 }
 
@@ -97,6 +137,7 @@ int MainWindow::FindBinaryConters(void)
         {
             Moments mu = moments(contours[num],false);
             tempContour.m_Center = Point2f( mu.m10/mu.m00 , mu.m01/mu.m00 );
+            tempContour.index = num;
             ContourResults.push_back(tempContour);
         }
     }
@@ -209,7 +250,12 @@ void MainWindow::ShowImage()
 
     //显示原图
     cv::resize(ImageOriginal,showImage,Size(ui->label_original->width(),ui->label_original->height()));
+    //绘制轮廓：3个轮廓情况   2个轮廓的情况
+//    cv::circle(showImage, PtBeacon, 2, cv::Scalar(0, 0, 255));
+//    cv::circle(showImage, PtCarFront, 4, cv::Scalar(255, 0, 0));
+//    cv::circle(showImage, PtCarTail, 8, cv::Scalar(0, 255, 0));
     cvtColor(showImage,showImage,CV_BGR2RGB);
+
     image = QImage((uchar*)showImage.data,showImage.cols,showImage.rows,
                    showImage.cols*showImage.channels(),QImage::Format_RGB888);
     ui->label_original->setPixmap(QPixmap::fromImage(image));

@@ -150,6 +150,11 @@
      </property>
      <item>
       <property name="text">
+       <string>video</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
        <string>0</string>
       </property>
      </item>
@@ -424,7 +429,7 @@ border-color: rgb(0, 0, 0)</string>
       </rect>
      </property>
      <property name="maximum">
-      <number>50</number>
+      <number>100</number>
      </property>
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
@@ -469,7 +474,7 @@ border-color: rgb(0, 0, 0)</string>
       </rect>
      </property>
      <property name="maximum">
-      <number>50</number>
+      <number>100</number>
      </property>
     </widget>
     <widget class="QLabel" name="label_8">
