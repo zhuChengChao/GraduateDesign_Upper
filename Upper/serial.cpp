@@ -81,7 +81,7 @@ void MainWindow::SendData()
     TxBuff[2] = Angle;
     TxBuff[3] = Distance & 0x00ff;
     TxBuff[4] = Distance / 256;
-    TxBuff[5] = 0x00;
+    TxBuff[5] = PointNum;
 
     for(uint i=1;i<6;i++)
         sum += TxBuff[i];

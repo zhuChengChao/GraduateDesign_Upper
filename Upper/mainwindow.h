@@ -36,6 +36,8 @@ private slots:
     void on_spinBox_BlurSize_valueChanged(int arg1);
     void on_spinBox_MinBlibSize_valueChanged(int arg1);
 
+    void on_comboBox_channel_currentIndexChanged(const QString &arg1);
+
 private:
     //函数定义：
     //初始化函数
@@ -48,7 +50,8 @@ private:
     void AnalysisImage(void);
     int FindBinaryConters(void);
     //计算函数
-    void findCarAndPoint(void);
+    void FindCarAndPoint(void);
+    void FineOnlyCar(void);
     float GetDistance(Point2f &pt1, Point2f &pt2);
     void GetAngle();
 
@@ -57,7 +60,7 @@ private:
     //摄像头图像
     QTimer *timer;
     VideoCapture Capture;
-    Mat ImageOriginal,ImageGray,ImageBinary;
+    Mat ImageOriginal,ImageGray,ImageBinary,ImageBinaryShow;
     //调节参数
     int BlurSize;
     int Thresh;
@@ -72,6 +75,7 @@ private:
     Point2f PtBeacon, PtCarFront, PtCarTail;
     unsigned int Distance;
     unsigned char DirAngle,Angle;
+    unsigned char PointNum;
 };
 
 #endif // MAINWINDOW_H

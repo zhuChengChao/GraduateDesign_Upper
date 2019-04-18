@@ -11,6 +11,8 @@ void MainWindow::on_pushButton_OpenCam_clicked()
 {
     if(ui->comboBox_channel->currentText() == "video")
         g_isMovie = true;
+    else
+        g_isMovie = false;
 
     if(g_isMovie)
     {
@@ -30,7 +32,7 @@ void MainWindow::on_pushButton_OpenCam_clicked()
         return;
     }
 
-    g_isMovie = false;
+
     if (!Capture.isOpened())
     {
         Capture.open(ui->comboBox_channel->currentText().toInt());
@@ -69,7 +71,7 @@ void MainWindow::GetFrame()
     {
         //获取视频流
         bool read_flag = Capture.read(ImageOriginal);
-        qDebug()<<read_flag;
+        //qDebug()<<read_flag;
 
         if(read_flag == false)
         {
@@ -80,15 +82,17 @@ void MainWindow::GetFrame()
         }
     }
 
-
     //修正
     //...
 
     cvtColor(ImageOriginal, ImageGray, CV_BGR2GRAY);
     blur(ImageGray, ImageGray, Size(BlurSize,BlurSize));
     threshold(ImageGray, ImageBinary, Thresh, 255, THRESH_BINARY);
+
+    ImageBinary.copyTo(ImageBinaryShow);
     //临时测试
     //threshold(ImageGray, ImageBinary, 0, 255, THRESH_BINARY | THRESH_OTSU);
+    //cv::imshow("binary", ImageBinary);
 
     AnalysisImage();
 
@@ -105,14 +109,20 @@ void MainWindow::AnalysisImage(void)
     //当轮廓数目大于3 寻找目标和车
     if(findContoursNum >= 3)
     {
-        findCarAndPoint();
-        GetAngle();
+        FindCarAndPoint();
+        //GetAngle();
+        PointNum = 3;
     }
-    else
+    else if(findContoursNum == 2)
     {
         //当找到的轮廓数小于3个时的处理
-        ;
+        FineOnlyCar();
+        PointNum = 2;
     }
+    else//当点的个数小于2个时 都位错误的情况
+        PointNum = 0;
+
+    GetAngle();
 
     SendData();
 }
@@ -147,7 +157,7 @@ int MainWindow::FindBinaryConters(void)
 
 //寻找车的目标物体
 //计算目标与车的距离
-void MainWindow::findCarAndPoint()
+void MainWindow::FindCarAndPoint()
 {
     // 按照轮廓面积由大到小排序
     for(uint i=0;i < ContourResults.size();i++)
@@ -200,6 +210,35 @@ void MainWindow::findCarAndPoint()
     ui->lineEdit_Distance->setText(QString::number(Distance));
 }
 
+//当只有两个目标物体时，只寻找车
+void MainWindow::FineOnlyCar()
+{
+    // 按照轮廓面积由大到小排序
+    //只取最大的两块当做车头和车尾
+    for(uint i=0;i < ContourResults.size();i++)
+    {
+        for(uint j=0;j<ContourResults.size()-i-1;j++)
+        {
+            if(ContourResults[j].m_Area<ContourResults[j+1].m_Area)
+            {
+                Contour tmp = ContourResults[j];
+                ContourResults[j] = ContourResults[j+1];
+                ContourResults[j+1] = tmp;
+            }
+        }
+    }
+
+    PtBeacon.x = CAPTURE_WIDTH/2;
+    PtBeacon.y = CAPTURE_HEIGHT/2;
+
+    PtCarTail = ContourResults[0].m_Center;
+    PtCarFront = ContourResults[1].m_Center;
+
+    Distance = GetDistance(ContourResults[1].m_Center,PtBeacon);
+
+    ui->lineEdit_Distance->setText(QString::number(Distance));
+}
+
 
 //得到两点距离
 float MainWindow::GetDistance(Point2f &pt1,Point2f &pt2)
@@ -236,7 +275,7 @@ void MainWindow::GetAngle()
 
     Angle = acos(cosval)*180/CV_PI;
 
-    QString showDir = (DirAngle > 0)? "right" : "left";
+    QString showDir = (DirAngle > 0)? "left" : "right";
     ui->lineEdit_AngleDir->setText(showDir);
     ui->lineEdit_Angle->setText(QString::number(Angle));
 }
@@ -248,12 +287,13 @@ void MainWindow::ShowImage()
     QImage image;
     Mat showImage;
 
+
+    //绘制轮廓：3个轮廓情况   2个轮廓的情况
+    cv::circle(ImageOriginal, PtBeacon, 10, cv::Scalar(0, 0, 255), 4);
+    cv::circle(ImageOriginal, PtCarFront, 20, cv::Scalar(255, 0, 0), 4);
+    cv::circle(ImageOriginal, PtCarTail, 40, cv::Scalar(0, 255, 0), 4);
     //显示原图
     cv::resize(ImageOriginal,showImage,Size(ui->label_original->width(),ui->label_original->height()));
-    //绘制轮廓：3个轮廓情况   2个轮廓的情况
-//    cv::circle(showImage, PtBeacon, 2, cv::Scalar(0, 0, 255));
-//    cv::circle(showImage, PtCarFront, 4, cv::Scalar(255, 0, 0));
-//    cv::circle(showImage, PtCarTail, 8, cv::Scalar(0, 255, 0));
     cvtColor(showImage,showImage,CV_BGR2RGB);
     image = QImage((uchar*)showImage.data,showImage.cols,showImage.rows,
                    showImage.cols*showImage.channels(),QImage::Format_RGB888);
@@ -268,7 +308,8 @@ void MainWindow::ShowImage()
     ui->label_gray->show();
 
     //二值化图
-    cv::resize(ImageBinary,showImage,Size(ui->label_original->width(),ui->label_original->height()));
+    showImage = Mat::zeros(Size(ui->label_original->width(),ui->label_original->height()), CV_8U);
+    cv::resize(ImageBinaryShow,showImage,Size(ui->label_original->width(),ui->label_original->height()));
     image = QImage((uchar*)showImage.data,showImage.cols,showImage.rows,
                    showImage.cols*showImage.channels(),QImage::Format_Grayscale8);
     ui->label_binary->setPixmap(QPixmap::fromImage(image));

@@ -24,10 +24,13 @@ void MainWindow::AllIint()
     //参数初始化
     BlurSize = 3;
     ui->spinBox_BlurSize->setValue(BlurSize);
-    Thresh = 5;
+    Thresh = 10;
     ui->spinBox_ThresValue->setValue(Thresh);
-    MinBlobArea = 5;
+    MinBlobArea = 25;
     ui->spinBox_MinBlibSize->setValue(MinBlobArea);
+
+    if(ui->comboBox_channel->currentText() == "video")
+        ui->pushButton_OpenCam->setText(tr("打开视频流"));
 
     //定时器初始化
     timer = new QTimer(this);
@@ -54,4 +57,13 @@ void MainWindow::on_spinBox_BlurSize_valueChanged(int arg1)
 void MainWindow::on_spinBox_MinBlibSize_valueChanged(int arg1)
 {
     MinBlobArea = arg1;
+}
+
+//打开视频或者摄像头
+void MainWindow::on_comboBox_channel_currentIndexChanged(const QString &arg1)
+{
+    if(arg1 == "video")
+        ui->pushButton_OpenCam->setText(tr("打开视频流"));
+    else
+        ui->pushButton_OpenCam->setText((tr("打开相机")));
 }
